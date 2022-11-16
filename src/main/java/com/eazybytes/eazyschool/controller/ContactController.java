@@ -6,10 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.Errors;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.validation.Valid;
 import java.util.logging.Logger;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
@@ -19,7 +23,8 @@ import static org.springframework.web.bind.annotation.RequestMethod.POST;
 public class ContactController {
 //    private static Logger log = (Logger) LoggerFactory.getLogger(ContactController.class);
     @RequestMapping("/contact")
-    public String displayContact(){
+    public String displayContact(Model model){
+        model.addAttribute("contact",new Contact());
         return "contact.html";
     }
     private final ContactService contactService;
@@ -37,9 +42,13 @@ public class ContactController {
     }
      */
 @RequestMapping(value = "/saveMsg", method =  POST)
-    public ModelAndView saveMessage(Contact contact){
+    public String saveMessage(@Valid @ModelAttribute("contact")Contact contact, Errors errors){
+        if(errors.hasErrors()){
+            log.error("contact form validation failed due to :"+errors.toString());
+            return "contact.html";
+        }
         log.info("Name:" +contact.getName());
         contactService.saveMessageDetails(contact);
-        return new ModelAndView("redirect:/contact");
+        return "redirect:/contact";
     }
 }
